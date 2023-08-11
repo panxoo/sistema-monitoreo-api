@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MonitorApi.Data;
 using MonitorApi.Metodos.Validacion;
+using MonitorApi.Migrations.UsersDb;
 using MonitorApi.Models.DataBase;
 
 namespace MonitorApi.Controllers
@@ -23,6 +25,8 @@ namespace MonitorApi.Controllers
         }
 
         [HttpGet("jobmonitor")]
+
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult<IEnumerable<JobMonitor>>> GetJobMonitor()
         {
             if (_context.JobMonitors == null)

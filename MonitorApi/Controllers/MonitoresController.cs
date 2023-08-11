@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,8 @@ namespace MonitorApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MonitorView>>> GetMonitores()
         {
+            var sss = HttpContext.User.Identity;
+
             return await _context.Monitores.Where(w => w.Activo).Select(s => new MonitorView
             {
                 MonitorId = s.MonitoreID,

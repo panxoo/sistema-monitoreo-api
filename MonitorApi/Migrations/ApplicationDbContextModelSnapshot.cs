@@ -40,7 +40,7 @@ namespace MonitorApi.Migrations
 
                     b.HasKey("AgrupacionID");
 
-                    b.ToTable("Agrupacions");
+                    b.ToTable("Agrupacions", (string)null);
                 });
 
             modelBuilder.Entity("MonitorApi.Models.DataBase.JobMonitor", b =>
@@ -61,7 +61,7 @@ namespace MonitorApi.Migrations
 
                     b.HasKey("JobMonitorID");
 
-                    b.ToTable("JobMonitors");
+                    b.ToTable("JobMonitors", (string)null);
                 });
 
             modelBuilder.Entity("MonitorApi.Models.DataBase.Monitore", b =>
@@ -108,7 +108,7 @@ namespace MonitorApi.Migrations
 
                     b.HasIndex("JobMonitorID");
 
-                    b.ToTable("Monitores");
+                    b.ToTable("Monitores", (string)null);
                 });
 
             modelBuilder.Entity("MonitorApi.Models.DataBase.MonitorEstado", b =>
@@ -133,7 +133,7 @@ namespace MonitorApi.Migrations
                     b.HasIndex("MonitorID")
                         .IsUnique();
 
-                    b.ToTable("MonitorEstados");
+                    b.ToTable("MonitorEstados", (string)null);
                 });
 
             modelBuilder.Entity("MonitorApi.Models.DataBase.MonitorEstadoHist", b =>
@@ -167,7 +167,7 @@ namespace MonitorApi.Migrations
 
                     b.HasIndex("MonitorID");
 
-                    b.ToTable("MonitorEstadoHists");
+                    b.ToTable("MonitorEstadoHists", (string)null);
                 });
 
             modelBuilder.Entity("MonitorApi.Models.DataBase.MonitorEstadoUltimo", b =>
@@ -193,7 +193,7 @@ namespace MonitorApi.Migrations
                     b.HasIndex("MonitorID")
                         .IsUnique();
 
-                    b.ToTable("MonitorEstadoUltimos");
+                    b.ToTable("MonitorEstadoUltimos", (string)null);
                 });
 
             modelBuilder.Entity("MonitorApi.Models.DataBase.Monitore", b =>
