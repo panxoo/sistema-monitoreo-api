@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using MonitorApi;
 using MonitorApi.Data;
+using MonitorApi.Models.DataBase;
 using MonitorApi.Models.Setting;
 using MonitorApi.Services;
 using System.IO;
@@ -27,7 +28,7 @@ string stringConnexionAuth = builder.Configuration.GetConnectionString("prueba_a
 
 builder.Services.Configure<TokensSettings>(builder.Configuration.GetSection("Tokens"));
 
-builder.Services.AddAntiforgery(options =>     options.HeaderName = "X-XSRF-TOKEN");
+builder.Services.AddAntiforgery(options =>     options.HeaderName = "X-Xsrf-Token");
 
 builder.Services.AddControllersWithViews();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -102,7 +103,7 @@ builder.Services.AddCookiePolicy(options =>
 });
 
 
-builder.Services.AddIdentityCore<IdentityUser>(options =>
+builder.Services.AddIdentityCore<User>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
     options.User.RequireUniqueEmail = true;
@@ -111,9 +112,8 @@ builder.Services.AddIdentityCore<IdentityUser>(options =>
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
     options.Password.RequireLowercase = false; 
-    
-   
-}).AddEntityFrameworkStores<UsersDbContext>()
+}).AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<UsersDbContext>()
  .AddDefaultTokenProviders();
 
 
@@ -133,15 +133,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("politica",
         policy =>
         {
-            policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
-            .AllowAnyMethod()
+            policy.AllowAnyMethod()
+            .WithOrigins("http://localhost:4200", "https://localhost:4200", "http://192.168.1.37:4200")
            .AllowAnyHeader()
-         //  .WithHeaders(HeaderNames.ContentType, "x-custom-header")
-           .AllowCredentials()
-           //.WithExposedHeaders("Set-Cookie")
-           ;
-            
-
+           .AllowCredentials();
         });
 });
 
@@ -165,13 +160,13 @@ var app = builder.Build();
 
 
 
-//app.UseCors(builder =>
+app.UseCors(builder =>
 
-//    builder.SetIsOriginAllowed(origin => true)
-//           .AllowAnyMethod()
-//           .AllowAnyHeader()
-//           .AllowCredentials()
-//);
+    builder.SetIsOriginAllowed(origin => true)
+           .AllowAnyMethod()
+           .AllowAnyHeader()
+           .AllowCredentials()
+);
 
 
 
@@ -184,32 +179,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
-
-//app.Use((context, next) =>
-//{
-
-//    var requestPath = context.Request.Path.Value;
-//    //if (context.Request.Headers.ContainsKey("X-XSRF-TOKEN"))
-//    //{
-//    //    antiforgery.ValidateRequestAsync(context);
-//    //}
-
-//    var ss = requestPath;
-
-// if (string.Equals(requestPath, "/", StringComparison.OrdinalIgnoreCase)
-//        || string.Equals(requestPath, "/index.html", StringComparison.OrdinalIgnoreCase))
-//{
-//    var tokens = antiforgery.GetAndStoreTokens(context);
-//        context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken, new CookieOptions { HttpOnly = false, Path = "/", SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None, Secure = true });
-//   }
-//    return next(context);
-//});
 
 app.UseAntiforgeryToken();
 
 
-app.UseCors("politica");
+//app.UseCors("politica");
+
 app.UseStaticFiles();
 app.UseCookiePolicy();
 app.UseHttpsRedirection();

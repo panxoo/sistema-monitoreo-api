@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MonitorApi.Data;
+using MonitorApi.Models.DataBase;
 using MonitorApi.Models.Setting;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace MonitorApi.Services
@@ -13,20 +17,23 @@ namespace MonitorApi.Services
     {
         private const int ExpirationMinutes = 30;
         private readonly IOptions<TokensSettings> _tokensSettings;
-        public TokenService(IOptions<TokensSettings> tokensSettings) => _tokensSettings = tokensSettings;
-        public string CreateToken(IdentityUser user)
+        private readonly UsersDbContext _context;
+        public TokenService(IOptions<TokensSettings> tokensSettings, UsersDbContext context)
+        {
+            _tokensSettings = tokensSettings;
+            _context = context;
+        }
+
+        public string CreateToken(IdentityUser user, List<string> roles)
         {
             try
             {
-                var expiration = DateTime.UtcNow.AddMinutes(ExpirationMinutes);
-                var token = CreateJwtToken(
-                    CreateClaims(user),
-                    CreateSigningCredentials(),
-                    expiration
-                    );
+                DateTime expiration = DateTime.UtcNow.AddMinutes(ExpirationMinutes);
+                var Jwtoken = CreateJwtToken(CreateClaims(user, roles),
+                                                CreateSigningCredentials(),
+                                                expiration);
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var ss = tokenHandler.WriteToken(token);
-                return ss;
+                return tokenHandler.WriteToken(Jwtoken);
 
             }
             catch (Exception ex)
@@ -37,35 +44,30 @@ namespace MonitorApi.Services
 
         private JwtSecurityToken CreateJwtToken(List<Claim> claims, SigningCredentials credentials,
             DateTime expiration) => new JwtSecurityToken(
-                _tokensSettings.Value.Issuer,
-                _tokensSettings.Value.Issuer,
-                claims,
-                expires: expiration,
-                signingCredentials: credentials
-                );
+                                                        _tokensSettings.Value.Issuer,
+                                                        _tokensSettings.Value.Issuer,
+                                                        claims,
+                                                        expires: expiration,
+                                                        signingCredentials: credentials);
 
-        private List<Claim> CreateClaims(IdentityUser user)
+        private List<Claim> CreateClaims(IdentityUser user, List<string> roles)
         {
-            try
-            {
-                var claims = new List<Claim>()
+            var claims = new List<Claim>()
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, "TokenForTheApiWithAuth"),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)),
                     new Claim(ClaimTypes.NameIdentifier, user.Id),
                     new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Role, "admin"), 
-
+                    new Claim(ClaimTypes.Email, user.Email)
                 };
-                return claims;
-            }
-            catch (Exception ex)
+
+            roles.ForEach(f =>
             {
-                Console.WriteLine(ex);
-                throw;
-            }
+                claims.Add(new Claim(ClaimTypes.Role, f));
+            });
+
+            return claims;
         }
 
         private SigningCredentials CreateSigningCredentials()
@@ -73,6 +75,31 @@ namespace MonitorApi.Services
             return new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokensSettings.Value.Key)),
                 SecurityAlgorithms.HmacSha256);
+        }
+
+        public RefreshToken GenerateRefreshToken(string ipAddress)
+        {
+            var refreshToken = new RefreshToken
+            {
+                Token = getUniqueToken(),
+                Expires = DateTime.UtcNow.AddDays(7),
+                Created = DateTime.UtcNow,
+                CreatedByIp = ipAddress
+            };
+
+            return refreshToken;           
+        }
+
+        private string getUniqueToken()
+        {
+            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+         
+            var tokenIsUnique = !_context.Users.Any(u => u.RefreshTokens.Any(t => t.Token == token));
+
+            if (!tokenIsUnique)
+                return getUniqueToken();
+
+            return token;
         }
     }
 }

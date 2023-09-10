@@ -23,7 +23,14 @@ namespace MonitorApi
             if (context.Request.Path.Value.IndexOf("/api", StringComparison.OrdinalIgnoreCase) != -1)
             { 
                 var tokens = _antiforgery.GetAndStoreTokens(context);
-                context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken, new CookieOptions { HttpOnly = false });
+                context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken,
+                    new CookieOptions
+                    {
+                       SameSite = SameSiteMode.None, 
+                        HttpOnly = false,
+                        Secure = true
+
+                    }) ;
             }
             return _next(context);
         }

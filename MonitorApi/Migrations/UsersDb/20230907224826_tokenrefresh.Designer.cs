@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MonitorApi.Data;
 
@@ -11,9 +12,10 @@ using MonitorApi.Data;
 namespace MonitorApi.Migrations.UsersDb
 {
     [DbContext(typeof(UsersDbContext))]
-    partial class UsersDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230907224826_tokenrefresh")]
+    partial class tokenrefresh
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,15 +176,18 @@ namespace MonitorApi.Migrations.UsersDb
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ReasonRevoked")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ReplacedByToken")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Revoked")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("RevokedByIp")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Token")
@@ -190,7 +195,6 @@ namespace MonitorApi.Migrations.UsersDb
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -318,13 +322,9 @@ namespace MonitorApi.Migrations.UsersDb
 
             modelBuilder.Entity("MonitorApi.Models.DataBase.RefreshToken", b =>
                 {
-                    b.HasOne("MonitorApi.Models.DataBase.User", "User")
+                    b.HasOne("MonitorApi.Models.DataBase.User", null)
                         .WithMany("RefreshTokens")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
+                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("MonitorApi.Models.DataBase.User", b =>
